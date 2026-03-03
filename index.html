@@ -1,153 +1,245 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no"/>
-<title>触屏贪吃蛇</title>
-<style>
-  *{margin:0;padding:0;box-sizing:border-box;font-family:Arial,sans-serif}
-  body{
-    background:#1a1a1a;
-    display:flex;
-    justify-content:center;
-    align-items:center;
-    min-height:100vh;
-    flex-direction:column;
-    color:#fff;
-  }
-  #score{font-size:24px;margin-bottom:10px}
-  #game{
-    border:3px solid #4CAF50;
-    background:#111;
-    display:block;
-  }
-  .tips{margin-top:8px;font-size:14px;color:#aaa}
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>花朵数字消消乐</title>
+    <style>
+        * { margin:0; padding:0; box-sizing:border-box; font-family:"微软雅黑"; }
+        body { background:#FFF9E8; padding:20px; text-align:center; }
+        h1 { color:#FF6B8B; margin:20px 0; }
+        /* 页面控制 */
+        #info { display:block; }
+        #level { display:none; }
+        #game { display:none; }
+        /* 表单 */
+       .form { max-width:400px; margin:0 auto; background:white; padding:20px; border-radius:10px; box-shadow:0 2px 8px #FFD1DC; }
+       .form p { margin:15px 0; text-align:left; }
+       .form label { color:#4CAF50; font-weight:bold; }
+       .form input { width:100%; padding:10px; margin-top:5px; border:2px solid #FFC107; border-radius:8px; }
+        /* 按钮 */
+       .btn { padding:15px 40px; font-size:20px; background:#FF9800; color:white; border:none; border-radius:30px; cursor:pointer; margin:10px; }
+        /* 难度选择 */
+       .level-box { display:flex; justify-content:center; gap:20px; margin:30px 0; flex-wrap:wrap; }
+       .level-card { width:150px; background:white; padding:15px; border:3px solid #FF6B8B; border-radius:10px; cursor:pointer; }
+        /* 游戏区 */
+       .timer { font-size:22px; color:#E53935; font-weight:bold; margin:15px 0; }
+       .game-board { max-width:800px; margin:0 auto; background:white; padding:20px; border-radius:10px; box-shadow:0 2px 8px #FFD1DC; display:grid; gap:10px; justify-content:center; }
+        /* 花朵卡片 */
+       .flower { 
+            width:100px; height:100px; border:2px solid; border-radius:8px; 
+            display:flex; flex-direction:column; align-items:center; justify-content:center; 
+            cursor:pointer; transition:all 0.2s;
+        }
+       .flower.red { background:#FFF0F2; border-color:#FF6B8B; }
+       .flower.yellow { background:#FFFBEB; border-color:#FFD700; }
+       .flower-icon { font-size:35px; color:#FF6B8B; }
+       .flower-num { font-size:24px; color:#E53935; }
+       .flower.selected { border-color:#4CAF50; box-shadow:0 0 10px #81C784; }
+       .flower.hide { opacity:0; pointer-events:none; transform:scale(0.9); }
+        /* 通关弹窗：重点优化——中间大文字 */
+       .win { 
+            position:fixed; top:0; left:0; width:100%; height:100%; 
+            background:rgba(0,0,0,0.6); display:none; 
+            flex-direction:column; /* 垂直排列 */
+            align-items:center; justify-content:center; /* 完全居中 */
+            z-index:999;
+        }
+        /* 正中间的“太棒了” */
+       .win-title { 
+            font-size:80px; color:#FFD700; font-weight:bold; 
+            text-shadow:0 0 15px #FF6B8B; margin-bottom:20px;
+        }
+        /* 弹窗内容区 */
+       .win-box { 
+            background:white; padding:30px 50px; border-radius:15px; 
+            text-align:center;
+        }
+       .win-box p { font-size:22px; color:#333; margin:20px 0; }
+    </style>
 </head>
 <body>
-<div id="score">得分: 0</div>
-<canvas id="game" width="400" height="400"></canvas>
-<div class="tips">电脑：方向键 | 手机：上下左右滑动</div>
+    <!-- 1. 信息页 -->
+    <div id="info">
+        <h1>🌸 花朵数字消消乐 🌸</h1>
+        <div class="form">
+            <p>
+                <label>你的名字：</label><br>
+                <input type="text" id="name" placeholder="比如：小红">
+            </p>
+            <button class="btn" onclick="switchPage('info','level')">下一步选难度</button>
+        </div>
+    </div>
 
-<script>
-const canvas = document.getElementById('game');
-const ctx = canvas.getContext('2d');
-const scoreEl = document.getElementById('score');
+    <!-- 2. 难度页 -->
+    <div id="level">
+        <h1>选择难度</h1>
+        <div class="level-box">
+            <div class="level-card" onclick="switchPage('level','game'); loadGame('small')">
+                <h3>小班</h3>
+                <p>4×4（红4对+黄4对）</p>
+            </div>
+            <div class="level-card" onclick="switchPage('level','game'); loadGame('medium')">
+                <h3>中班</h3>
+                <p>4×6（红6对+黄6对）</p>
+            </div>
+            <div class="level-card" onclick="switchPage('level','game'); loadGame('large')">
+                <h3>大班</h3>
+                <p>4×10（红10对+黄10对）</p>
+            </div>
+        </div>
+        <button class="btn" onclick="switchPage('level','info')">返回填信息</button>
+    </div>
 
-const grid = 20;
-const count = canvas.width / grid;
+    <!-- 3. 游戏页 -->
+    <div id="game">
+        <h1>开始游戏！</h1>
+        <div class="timer">用时：<span id="time">00:00</span></div>
+        <div class="game-board" id="board"></div>
+        <button class="btn" onclick="restartGame()">重新玩</button>
+        <button class="btn" onclick="switchPage('game','level')">换难度</button>
+    </div>
 
-let snake = [{x: 10, y: 10}];
-let dx = 1;
-let dy = 0;
-let food = {};
-let score = 0;
+    <!-- 通关弹窗：新增中间大文字“太棒了” -->
+    <div class="win" id="win">
+        <!-- 屏幕正中间的标题 -->
+        <div class="win-title">太棒了</div>
+        <!-- 下方的详情弹窗 -->
+        <div class="win-box">
+            <p>全部花朵已消除！</p>
+            <p>用时：<span id="finalTime">00:00</span></p>
+            <button class="btn" onclick="document.getElementById('win').style.display='none'">再玩一次</button>
+        </div>
+    </div>
 
-let touchStartX = 0;
-let touchStartY = 0;
+    <script>
+        // 全局变量
+        let currentLevel = '';
+        let timer = null;
+        let startTimestamp = 0;
+        let totalPairsPerColor = 0;
+        let matchedRedPairs = 0;
+        let matchedYellowPairs = 0;
+        let firstSelected = null;
 
-function randomFood() {
-  food.x = Math.floor(Math.random() * count);
-  food.y = Math.floor(Math.random() * count);
-  snake.forEach(s => {
-    if (s.x === food.x && s.y === food.y) randomFood();
-  });
-}
+        // 页面切换
+        function switchPage(hideId, showId) {
+            document.getElementById(hideId).style.display = 'none';
+            document.getElementById(showId).style.display = 'block';
+        }
 
-function draw() {
-  ctx.fillStyle = '#111';
-  ctx.fillRect(0,0,canvas.width,canvas.height);
+        // 生成同色完整数字对
+        function getColorMatchedNums(pairCount) {
+            const sum10Pairs = [[1,9], [2,8], [3,7], [4,6], [5,5]];
+            const nums = [];
+            for (let i = 0; i < pairCount; i++) {
+                const pairIndex = i % sum10Pairs.length;
+                nums.push(sum10Pairs[pairIndex][0], sum10Pairs[pairIndex][1]);
+            }
+            return shuffleArray(nums);
+        }
 
-  ctx.fillStyle = '#4CAF50';
-  snake.forEach(s => {
-    ctx.fillRect(s.x*grid, s.y*grid, grid-2, grid-2);
-  });
+        // 随机打乱数组
+        function shuffleArray(array) {
+            const newArr = [...array];
+            for (let i = newArr.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [newArr[i], newArr[j]] = [newArr[j], newArr[i]];
+            }
+            return newArr;
+        }
 
-  ctx.fillStyle = '#ff4444';
-  ctx.fillRect(food.x*grid, food.y*grid, grid-2, grid-2);
-}
+        // 加载游戏
+        function loadGame(level) {
+            currentLevel = level;
+            const board = document.getElementById('board');
+            board.innerHTML = '';
+            matchedRedPairs = 0;
+            matchedYellowPairs = 0;
+            firstSelected = null;
 
-function move() {
-  const head = {x: snake[0].x + dx, y: snake[0].y + dy};
+            let gridCols;
+            if (level === 'small') {
+                gridCols = 'repeat(4, 100px)';
+                totalPairsPerColor = 4;
+            } else if (level === 'medium') {
+                gridCols = 'repeat(6, 100px)';
+                totalPairsPerColor = 6;
+            } else {
+                gridCols = 'repeat(10, 80px)';
+                totalPairsPerColor = 10;
+            }
+            board.style.gridTemplateColumns = gridCols;
 
-  if (head.x < 0 || head.x >= count || head.y < 0 || head.y >= count) {
-    alert('游戏结束！得分：'+score);
-    reset();
-    return;
-  }
+            const redNums = getColorMatchedNums(totalPairsPerColor);
+            const yellowNums = getColorMatchedNums(totalPairsPerColor);
+            const allFlowers = [];
+            redNums.forEach(num => allFlowers.push({ color: 'red', num: num }));
+            yellowNums.forEach(num => allFlowers.push({ color: 'yellow', num: num }));
+            const shuffledFlowers = shuffleArray(allFlowers);
 
-  snake.forEach(s => {
-    if (s.x === head.x && s.y === head.y) {
-      alert('游戏结束！得分：'+score);
-      reset();
-    }
-  });
+            shuffledFlowers.forEach(flowerData => {
+                const flower = document.createElement('div');
+                flower.className = `flower ${flowerData.color}`;
+                flower.dataset.color = flowerData.color;
+                flower.dataset.num = flowerData.num;
+                flower.innerHTML = `
+                    <div class="flower-icon">🌸</div>
+                    <div class="flower-num">${flowerData.num}</div>
+                `;
 
-  snake.unshift(head);
+                flower.onclick = function() {
+                    if (this.classList.contains('hide')) return;
 
-  if (head.x === food.x && head.y === food.y) {
-    score += 1;
-    scoreEl.textContent = '得分: ' + score;
-    randomFood();
-  } else {
-    snake.pop();
-  }
-}
+                    if (!firstSelected) {
+                        firstSelected = this;
+                        firstSelected.classList.add('selected');
+                    } else if (firstSelected!== this) {
+                        const isSameColor = firstSelected.dataset.color === this.dataset.color;
+                        const isSum10 = parseInt(firstSelected.dataset.num) + parseInt(this.dataset.num) === 10;
 
-function reset() {
-  snake = [{x:10,y:10}];
-  dx = 1; dy = 0;
-  score = 0;
-  scoreEl.textContent = '得分: 0';
-  randomFood();
-}
+                        if (isSameColor && isSum10) {
+                            firstSelected.classList.add('hide');
+                            this.classList.add('hide');
+                            if (flowerData.color === 'red') matchedRedPairs++;
+                            else matchedYellowPairs++;
 
-// 键盘
-document.addEventListener('keydown', e => {
-  if (e.key === 'ArrowLeft' && dx !== 1) { dx = -1; dy = 0; }
-  else if (e.key === 'ArrowRight' && dx !== -1) { dx = 1; dy = 0; }
-  else if (e.key === 'ArrowUp' && dy !== 1) { dx = 0; dy = -1; }
-  else if (e.key === 'ArrowDown' && dy !== -1) { dx = 0; dy = 1; }
-});
+                            // 所有花朵消除→显示通关效果
+                            if (matchedRedPairs >= totalPairsPerColor && matchedYellowPairs >= totalPairsPerColor) {
+                                clearInterval(timer);
+                                document.getElementById('finalTime').textContent = document.getElementById('time').textContent;
+                                document.getElementById('win').style.display = 'flex'; // 显示居中文字
+                            }
+                        }
 
-// 触屏
-document.addEventListener('touchstart', e => {
-  touchStartX = e.touches[0].clientX;
-  touchStartY = e.touches[0].clientY;
-});
+                        firstSelected.classList.remove('selected');
+                        firstSelected = null;
+                    } else {
+                        firstSelected.classList.remove('selected');
+                        firstSelected = null;
+                    }
+                };
 
-document.addEventListener('touchmove', e => {
-  e.preventDefault();
-});
+                board.appendChild(flower);
+            });
 
-document.addEventListener('touchend', e => {
-  if (!touchStartX || !touchStartY) return;
+            startTimestamp = Date.now();
+            clearInterval(timer);
+            timer = setInterval(updateTimer, 1000);
+        }
 
-  const endX = e.changedTouches[0].clientX;
-  const endY = e.changedTouches[0].clientY;
+        // 计时器更新
+        function updateTimer() {
+            const elapsedSec = Math.floor((Date.now() - startTimestamp) / 1000);
+            const min = Math.floor(elapsedSec / 60).toString().padStart(2, '0');
+            const sec = (elapsedSec % 60).toString().padStart(2, '0');
+            document.getElementById('time').textContent = `${min}:${sec}`;
+        }
 
-  const diffX = endX - touchStartX;
-  const diffY = endY - touchStartY;
-
-  if (Math.abs(diffX) > Math.abs(diffY)) {
-    if (diffX > 0 && dx !== -1) { dx = 1; dy = 0; }
-    else if (diffX < 0 && dx !== 1) { dx = -1; dy = 0; }
-  } else {
-    if (diffY > 0 && dy !== -1) { dx = 0; dy = 1; }
-    else if (diffY < 0 && dy !== 1) { dx = 0; dy = -1; }
-  }
-
-  touchStartX = 0;
-  touchStartY = 0;
-});
-
-function game() {
-  move();
-  draw();
-}
-
-randomFood();
-setInterval(game, 120);
-</script>
+        // 重新开始游戏
+        function restartGame() {
+            loadGame(currentLevel);
+        }
+    </script>
 </body>
 </html>
