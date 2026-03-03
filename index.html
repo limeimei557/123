@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>幼儿园识字消消乐</title>
+    <style>
+        body {
+            background: #FFF0F5;
+            text-align: center;
+            padding: 20px;
+            font-family: "微软雅黑";
+            margin: 0;
+        }
+        h1 {
+            color: #FF69B4;
+            margin-bottom: 30px;
+        }
+        /* 按钮样式 */
+       .big-btn {
+            padding: 18px 35px;
+            margin: 15px;
+            font-size: 20px;
+            border: none;
+            border-radius: 30px;
+            background: #FF9ACD;
+            color: white;
+            cursor: pointer;
+            box-shadow: 0 2px 5px #FFB6C1;
+        }
+       .big-btn:hover {
+            background: #FF69B4;
+        }
+        /* 卡片样式：图字结合，适合幼儿 */
+       .card {
+            width: 140px; /* 加宽卡片，容纳图片+文字 */
+            height: 140px;
+            margin: 10px;
+            display: inline-flex;
+            flex-direction: column; /* 图片在上，文字在下 */
+            align-items: center;
+            justify-content: center;
+            border-radius: 15px;
+            color: #FF69B4;
+            cursor: pointer;
+            box-shadow: 0 2px 5px #FFB6C1;
+            transition: all 0.2s;
+            padding: 5px;
+        }
+        /* 图字配对卡：区分图/字 */
+       .card.img-card {
+            background: #FFE4E1;
+        }
+       .card.txt-card {
+            background: #E1F5FF;
+        }
+        /* 反义词配对卡：统一浅黄底，更活泼 */
+       .card.antonym-card {
+            background: #FFF8E1;
+        }
+        /* 卡片内图片样式：放大大皮球，凸显大小差 */
+       .card-img {
+            font-size: 50px; /* 大皮球放大，小圆点同字号下显小，对比更强 */
+            margin-bottom: 8px;
+        }
+        /* 卡片内文字样式 */
+       .card-txt {
+            font-size: 24px;
+            font-weight: bold;
+        }
+       .card.flipped {
+            box-shadow: 0 0 8px #FF69B4; /* 点击高亮反馈 */
+        }
+       .card.hidden {
+            display: none; /* 配对成功立即消失 */
+        }
+        /* 页面容器 */
+       .page {
+            display: none;
+        }
+        #page1 {
+            display: block;
+        }
+        /* 奖励弹窗 */
+       .reward {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.7);
+            display: none;
+            align-items: center;
+            justify-content: center;
+        }
+       .reward-box {
+            background: white;
+            padding: 30px;
+            border-radius: 20px;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <!-- 页面1：玩法选择页 -->
+    <div class="page" id="page1">
+        <h1>🌸 幼儿园识字消消乐 🌸</h1>
+        <button class="big-btn" onclick="showPage2()">玩法1：图字配对</button>
+        <button class="big-btn" onclick="showPage3()">玩法2：反义词对对碰</button>
+    </div>
+
+    <!-- 页面2：图字配对（双向秒消失） -->
+    <div class="page" id="page2">
+        <button class="big-btn" onclick="showPage1()">← 返回选择页</button>
+        <h1>图字配对（点图点字都消失）</h1>
+        <div id="card-box2"></div>
+        <div class="reward" id="reward2">
+            <div class="reward-box">
+                <h2>全部配对成功！太棒啦！</h2>
+                <div style="font-size: 40px; color: #FFD700;">★★★</div>
+                <button class="big-btn" onclick="restartPage2()">再玩一次</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 页面3：反义词对对碰（大小图对比强化版） -->
+    <div class="page" id="page3">
+        <button class="big-btn" onclick="showPage1()">← 返回选择页</button>
+        <h1>反义词对对碰（看图认词）</h1>
+        <div id="card-box3"></div>
+        <div class="reward" id="reward3">
+            <div class="reward-box">
+                <h2>全部配对成功！你真厉害！</h2>
+                <div style="font-size: 40px; color: #FFD700;">★★★</div>
+                <button class="big-btn" onclick="restartPage3()">再玩一次</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ---------------------- 页面跳转（稳定不失效）----------------------
+        function showPage1() {
+            document.getElementById('page1').style.display = 'block';
+            document.getElementById('page2').style.display = 'none';
+            document.getElementById('page3').style.display = 'none';
+            document.getElementById('reward2').style.display = 'none';
+            document.getElementById('reward3').style.display = 'none';
+        }
+
+        function showPage2() {
+            document.getElementById('page1').style.display = 'none';
+            document.getElementById('page2').style.display = 'block';
+            initPage2();
+        }
+
+        function showPage3() {
+            document.getElementById('page1').style.display = 'none';
+            document.getElementById('page3').style.display = 'block';
+            initPage3();
+        }
+
+        // ---------------------- 玩法1：图字配对（双向秒消失）----------------------
+        let page2FirstCard = null;
+        let page2MatchedCount = 0;
+        const page2CardData = [
+            { key: 1, type: 'img', content: '🐱' },
+            { key: 1, type: 'txt', content: '猫' },
+            { key: 2, type: 'img', content: '🐶' },
+            { key: 2, type: 'txt', content: '狗' },
+            { key: 3, type: 'img', content: '🐦' },
+            { key: 3, type: 'txt', content: '鸟' },
+            { key: 4, type: 'img', content: '🌸' },
+            { key: 4, type: 'txt', content: '花' },
+            { key: 5, type: 'img', content: '📖' },
+            { key: 5, type: 'txt', content: '书' }
+        ];
+
+        function initPage2() {
+            const cardBox = document.getElementById('card-box2');
+            cardBox.innerHTML = '';
+            page2FirstCard = null;
+            page2MatchedCount = 0;
+
+            const shuffledCards = shuffleArray([...page2CardData]);
+            shuffledCards.forEach(cardInfo => {
+                const card = document.createElement('div');
+                card.className = `card ${cardInfo.type === 'img'? 'img-card' : 'txt-card'}`;
+                card.dataset.key = cardInfo.key;
+                card.dataset.type = cardInfo.type;
+                
+                // 图卡只显示Emoji，字卡只显示文字（保持原逻辑）
+                card.innerHTML = cardInfo.type === 'img'? 
+                    `<span class="card-img">${cardInfo.content}</span>` : 
+                    `<span class="card-txt">${cardInfo.content}</span>`;
+
+                card.onclick = function() {
+                    if (this.classList.contains('hidden') || this.classList.contains('flipped') || this === page2FirstCard) return;
+                    this.classList.add('flipped');
+
+                    if (!page2FirstCard) {
+                        page2FirstCard = this;
+                    } else {
+                        const firstKey = page2FirstCard.dataset.key;
+                        const firstType = page2FirstCard.dataset.type;
+                        const secondKey = this.dataset.key;
+                        const secondType = this.dataset.type;
+
+                        if (firstKey === secondKey && firstType!== secondType) {
+                            page2FirstCard.classList.add('hidden');
+                            this.classList.add('hidden');
+                            page2MatchedCount++;
+
+                            if (page2MatchedCount === 5) {
+                                document.getElementById('reward2').style.display = 'flex';
+                            }
+                        } else {
+                            setTimeout(() => {
+                                page2FirstCard.classList.remove('flipped');
+                                this.classList.remove('flipped');
+                            }, 500);
+                        }
+                        page2FirstCard = null;
+                    }
+                };
+                cardBox.appendChild(card);
+            });
+        }
+
+        function restartPage2() {
+            document.getElementById('reward2').style.display = 'none';
+            initPage2();
+        }
+
+        // ---------------------- 玩法2：反义词对对碰（大小图对比强化版）----------------------
+        let page3FirstCard = null;
+        let page3MatchedCount = 0;
+        // 核心优化：“大”=大皮球（🏀），“小”=小圆点（●），大小差异极致明显
+        const page3CardData = [
+            { key: 1, word: '多', img: '🍎🍎🍎' }, // 3个苹果=多
+            { key: 1, word: '少', img: '🍎' },     // 1个苹果=少
+            { key: 2, word: '大', img: '🏀' },      // 大皮球=大（视觉占比大）
+            { key: 2, word: '小', img: '●' },      // 小圆点=小（视觉占比极小）
+            { key: 3, word: '前', img: '🚗➡️' },   // 车朝前=前
+            { key: 3, word: '后', img: '⬅️🚗' },   // 车朝后=后
+            { key: 4, word: '左', img: '👈' },     // 左箭头=左
+            { key: 4, word: '右', img: '👉' },     // 右箭头=右
+            { key: 5, word: '上', img: '🔺' },     // 上三角=上
+            { key: 5, word: '下', img: '🔻' }      // 下三角=下
+        ];
+
+        function initPage3() {
+            const cardBox = document.getElementById('card-box3');
+            cardBox.innerHTML = '';
+            page3FirstCard = null;
+            page3MatchedCount = 0;
+
+            const shuffledCards = shuffleArray([...page3CardData]);
+            shuffledCards.forEach(cardInfo => {
+                const card = document.createElement('div');
+                card.className = 'card antonym-card'; // 统一浅黄底，区分玩法1
+                card.dataset.key = cardInfo.key;
+                
+                // 卡片结构：图片在上，文字在下（幼儿先看图再认词）
+                card.innerHTML = `
+                    <span class="card-img">${cardInfo.img}</span>
+                    <span class="card-txt">${cardInfo.word}</span>
+                `;
+
+                card.onclick = function() {
+                    if (this.classList.contains('hidden') || this.classList.contains('flipped') || this === page3FirstCard) return;
+                    this.classList.add('flipped');
+
+                    if (!page3FirstCard) {
+                        page3FirstCard = this;
+                    } else {
+                        if (page3FirstCard.dataset.key === this.dataset.key) {
+                            // 配对成功：秒消失
+                            page3FirstCard.classList.add('hidden');
+                            this.classList.add('hidden');
+                            page3MatchedCount++;
+
+                            if (page3MatchedCount === 5) {
+                                document.getElementById('reward3').style.display = 'flex';
+                            }
+                        } else {
+                            // 失败快速翻回
+                            setTimeout(() => {
+                                page3FirstCard.classList.remove('flipped');
+                                this.classList.remove('flipped');
+                            }, 500);
+                        }
+                        page3FirstCard = null;
+                    }
+                };
+                cardBox.appendChild(card);
+            });
+        }
+
+        function restartPage3() {
+            document.getElementById('reward3').style.display = 'none';
+            initPage3();
+        }
+
+        // ---------------------- 辅助函数：打乱数组 ----------------------
+        function shuffleArray(arr) {
+            return arr.sort(() => Math.random() - 0.5);
+        }
+
+        // 页面加载验证
+        window.onload = function() {
+            console.log('游戏加载完成，可正常操作');
+        };
+    </script>
+</body>
+</html>
