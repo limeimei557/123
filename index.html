@@ -3,313 +3,859 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>幼儿园识字消消乐</title>
+    <title>数学华容道</title>
     <style>
-        body {
-            background: #FFF0F5;
-            text-align: center;
-            padding: 20px;
-            font-family: "微软雅黑";
+        * {
             margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Microsoft YaHei', sans-serif;
         }
+        
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
+            color: white;
+            padding: 20px;
+        }
+        
+        .container {
+            width: 100%;
+            max-width: 500px;
+        }
+        
+        .page {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        }
+        
+        .active {
+            display: flex;
+        }
+        
         h1 {
-            color: #FF69B4;
+            font-size: 2.5rem;
             margin-bottom: 30px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
         }
-        /* 按钮样式 */
-       .big-btn {
-            padding: 18px 35px;
-            margin: 15px;
-            font-size: 20px;
+        
+        h2 {
+            font-size: 2rem;
+            margin-bottom: 20px;
+        }
+        
+        .color-blocks {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin: 30px 0;
+            width: 100%;
+            max-width: 300px;
+        }
+        
+        .color-block {
+            aspect-ratio: 1;
+            border-radius: 10px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: white;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            transition: transform 0.2s;
+        }
+        
+        .input-group {
+            width: 100%;
+            max-width: 300px;
+            margin: 20px 0;
+        }
+        
+        input {
+            width: 100%;
+            padding: 12px 15px;
             border: none;
-            border-radius: 30px;
-            background: #FF9ACD;
+            border-radius: 10px;
+            font-size: 1rem;
+            background: rgba(255, 255, 255, 0.9);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        
+        button {
+            width: 100%;
+            max-width: 300px;
+            padding: 12px 15px;
+            border: none;
+            border-radius: 10px;
+            background: #ff6b6b;
+            color: white;
+            font-size: 1.2rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            margin-top: 10px;
+        }
+        
+        button:hover {
+            background: #ff5252;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
+        }
+        
+        .game-board {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+            margin: 20px 0;
+            width: 100%;
+            max-width: 300px;
+        }
+        
+        .game-board-4x4 {
+            grid-template-columns: repeat(4, 1fr);
+            max-width: 400px;
+        }
+        
+        .tile {
+            aspect-ratio: 1;
+            border-radius: 8px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 1.5rem;
+            font-weight: bold;
             color: white;
             cursor: pointer;
-            box-shadow: 0 2px 5px #FFB6C1;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            transition: all 0.3s;
         }
-       .big-btn:hover {
-            background: #FF69B4;
+        
+        .tile:hover {
+            transform: scale(1.05);
         }
-        /* 卡片样式：图字结合，适合幼儿 */
-       .card {
-            width: 140px; /* 加宽卡片，容纳图片+文字 */
-            height: 140px;
-            margin: 10px;
-            display: inline-flex;
-            flex-direction: column; /* 图片在上，文字在下 */
-            align-items: center;
-            justify-content: center;
-            border-radius: 15px;
-            color: #FF69B4;
-            cursor: pointer;
-            box-shadow: 0 2px 5px #FFB6C1;
-            transition: all 0.2s;
-            padding: 5px;
+        
+        .empty {
+            background: transparent;
+            box-shadow: none;
+            cursor: default;
         }
-        /* 图字配对卡：区分图/字 */
-       .card.img-card {
-            background: #FFE4E1;
+        
+        .empty:hover {
+            transform: none;
         }
-       .card.txt-card {
-            background: #E1F5FF;
-        }
-        /* 反义词配对卡：统一浅黄底，更活泼 */
-       .card.antonym-card {
-            background: #FFF8E1;
-        }
-        /* 卡片内图片样式：放大大皮球，凸显大小差 */
-       .card-img {
-            font-size: 50px; /* 大皮球放大，小圆点同字号下显小，对比更强 */
-            margin-bottom: 8px;
-        }
-        /* 卡片内文字样式 */
-       .card-txt {
-            font-size: 24px;
+        
+        .timer {
+            font-size: 1.5rem;
+            margin: 20px 0;
             font-weight: bold;
         }
-       .card.flipped {
-            box-shadow: 0 0 8px #FF69B4; /* 点击高亮反馈 */
+        
+        .result {
+            margin: 20px 0;
+            font-size: 1.2rem;
         }
-       .card.hidden {
-            display: none; /* 配对成功立即消失 */
-        }
-        /* 页面容器 */
-       .page {
-            display: none;
-        }
-        #page1 {
-            display: block;
-        }
-        /* 奖励弹窗 */
-       .reward {
-            position: fixed;
-            top: 0;
-            left: 0;
+        
+        .choice-buttons {
+            display: flex;
+            gap: 15px;
             width: 100%;
-            height: 100%;
-            background: rgba(0,0,0,0.7);
-            display: none;
-            align-items: center;
-            justify-content: center;
+            max-width: 300px;
         }
-       .reward-box {
-            background: white;
-            padding: 30px;
-            border-radius: 20px;
-            text-align: center;
+        
+        .choice-buttons button {
+            flex: 1;
+        }
+        
+        .back-button {
+            background: #4CAF50;
+        }
+        
+        .back-button:hover {
+            background: #45a049;
+        }
+        
+        .instructions {
+            margin: 15px 0;
+            font-size: 0.9rem;
+            color: rgba(255, 255, 255, 0.8);
+        }
+        
+        .records-table {
+            width: 100%;
+            max-width: 400px;
+            margin: 20px 0;
+            border-collapse: collapse;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            overflow: hidden;
+        }
+        
+        .records-table th, .records-table td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .records-table th {
+            background: rgba(255, 255, 255, 0.2);
+            font-weight: bold;
+        }
+        
+        .records-table tr:last-child td {
+            border-bottom: none;
+        }
+        
+        .records-table tr:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+        
+        .no-records {
+            margin: 20px 0;
+            font-size: 1.1rem;
+            color: rgba(255, 255, 255, 0.7);
+        }
+        
+        .nav-buttons {
+            display: flex;
+            gap: 10px;
+            width: 100%;
+            max-width: 300px;
+            margin-top: 20px;
+        }
+        
+        .nav-buttons button {
+            flex: 1;
+        }
+        
+        .view-records-btn {
+            background: #9C27B0;
+        }
+        
+        .view-records-btn:hover {
+            background: #8E24AA;
+        }
+        
+        .debug-info {
+            margin-top: 10px;
+            font-size: 0.9rem;
+            color: rgba(255, 255, 255, 0.7);
+            background: rgba(0, 0, 0, 0.2);
+            padding: 8px 12px;
+            border-radius: 5px;
+            max-width: 300px;
         }
     </style>
 </head>
 <body>
-    <!-- 页面1：玩法选择页 -->
-    <div class="page" id="page1">
-        <h1>🌸 幼儿园识字消消乐 🌸</h1>
-        <button class="big-btn" onclick="showPage2()">玩法1：图字配对</button>
-        <button class="big-btn" onclick="showPage3()">玩法2：反义词对对碰</button>
-    </div>
+    <div class="container">
+        <!-- 首页 -->
+        <div id="page1" class="page active">
+            <h1>数学华容道</h1>
+            <div class="color-blocks">
+                <div class="color-block" style="background-color: #FF6B6B;">1</div>
+                <div class="color-block" style="background-color: #4ECDC4;">2</div>
+                <div class="color-block" style="background-color: #FFD166;">3</div>
+                <div class="color-block" style="background-color: #06D6A0;">4</div>
+                <div class="color-block" style="background-color: #118AB2;">5</div>
+                <div class="color-block" style="background-color: #073B4C;">6</div>
+                <div class="color-block" style="background-color: #7209B7;">7</div>
+                <div class="color-block" style="background-color: #F15BB5;">8</div>
+                <div class="color-block" style="background-color: #9B5DE5;">空</div>
+            </div>
+            <div class="input-group">
+                <input type="text" id="nickname" placeholder="请输入昵称">
+            </div>
+            <button id="startGame">开始游戏</button>
+            <button class="view-records-btn" id="viewRecords">查看游戏记录</button>
+            <p class="instructions">点击与空白格相邻的数字方块可以移动</p>
+        </div>
 
-    <!-- 页面2：图字配对（双向秒消失） -->
-    <div class="page" id="page2">
-        <button class="big-btn" onclick="showPage1()">← 返回选择页</button>
-        <h1>图字配对（点图点字都消失）</h1>
-        <div id="card-box2"></div>
-        <div class="reward" id="reward2">
-            <div class="reward-box">
-                <h2>全部配对成功！太棒啦！</h2>
-                <div style="font-size: 40px; color: #FFD700;">★★★</div>
-                <button class="big-btn" onclick="restartPage2()">再玩一次</button>
+        <!-- 3x3游戏页 -->
+        <div id="page2" class="page">
+            <h2>数字华容道</h2>
+            <div class="timer" id="timer3x3">时间: 0秒 | 步数: 0</div>
+            <div class="game-board" id="board3x3"></div>
+            <div class="debug-info" id="debug3x3"></div>
+            <div class="nav-buttons">
+                <button class="back-button" id="backToHomeFrom3x3">返回首页</button>
+                <button class="view-records-btn" id="viewRecordsFrom3x3">查看记录</button>
             </div>
         </div>
-    </div>
 
-    <!-- 页面3：反义词对对碰（大小图对比强化版） -->
-    <div class="page" id="page3">
-        <button class="big-btn" onclick="showPage1()">← 返回选择页</button>
-        <h1>反义词对对碰（看图认词）</h1>
-        <div id="card-box3"></div>
-        <div class="reward" id="reward3">
-            <div class="reward-box">
-                <h2>全部配对成功！你真厉害！</h2>
-                <div style="font-size: 40px; color: #FFD700;">★★★</div>
-                <button class="big-btn" onclick="restartPage3()">再玩一次</button>
+        <!-- 3x3完成页 -->
+        <div id="page3" class="page">
+            <h2>恭喜完成!</h2>
+            <div class="result" id="result3x3"></div>
+            <p>想不想挑战进阶版?</p>
+            <div class="choice-buttons">
+                <button id="challengeAdvanced">挑战进阶版</button>
+                <button class="back-button" id="backToHome1">返回首页</button>
             </div>
+            <button class="view-records-btn" id="viewRecordsFromComplete3x3">查看游戏记录</button>
+        </div>
+
+        <!-- 4x4游戏页 -->
+        <div id="page4" class="page">
+            <h2>数字华容道 - 进阶版</h2>
+            <div class="timer" id="timer4x4">时间: 0秒 | 步数: 0</div>
+            <div class="game-board game-board-4x4" id="board4x4"></div>
+            <div class="debug-info" id="debug4x4"></div>
+            <div class="nav-buttons">
+                <button class="back-button" id="backToHomeFrom4x4">返回首页</button>
+                <button class="view-records-btn" id="viewRecordsFrom4x4">查看记录</button>
+            </div>
+        </div>
+
+        <!-- 4x4完成页 -->
+        <div id="page5" class="page">
+            <h2>恭喜完成进阶版!</h2>
+            <div class="result" id="result4x4"></div>
+            <div class="nav-buttons">
+                <button class="back-button" id="backToHome2">返回首页</button>
+                <button class="view-records-btn" id="viewRecordsFromComplete4x4">查看游戏记录</button>
+            </div>
+        </div>
+
+        <!-- 游戏记录页 -->
+        <div id="page6" class="page">
+            <h2>游戏记录</h2>
+            <div id="recordsContainer">
+                <!-- 记录将在这里动态生成 -->
+            </div>
+            <button class="back-button" id="backFromRecords">返回首页</button>
         </div>
     </div>
 
     <script>
-        // ---------------------- 页面跳转（稳定不失效）----------------------
-        function showPage1() {
-            document.getElementById('page1').style.display = 'block';
-            document.getElementById('page2').style.display = 'none';
-            document.getElementById('page3').style.display = 'none';
-            document.getElementById('reward2').style.display = 'none';
-            document.getElementById('reward3').style.display = 'none';
-        }
+        // 页面元素
+        const pages = document.querySelectorAll('.page');
+        const nicknameInput = document.getElementById('nickname');
+        const startGameBtn = document.getElementById('startGame');
+        const board3x3 = document.getElementById('board3x3');
+        const board4x4 = document.getElementById('board4x4');
+        const timer3x3 = document.getElementById('timer3x3');
+        const timer4x4 = document.getElementById('timer4x4');
+        const result3x3 = document.getElementById('result3x3');
+        const result4x4 = document.getElementById('result4x4');
+        const debug3x3 = document.getElementById('debug3x3');
+        const debug4x4 = document.getElementById('debug4x4');
+        const challengeAdvancedBtn = document.getElementById('challengeAdvanced');
+        const backToHome1Btn = document.getElementById('backToHome1');
+        const backToHome2Btn = document.getElementById('backToHome2');
+        const backToHomeFrom3x3Btn = document.getElementById('backToHomeFrom3x3');
+        const backToHomeFrom4x4Btn = document.getElementById('backToHomeFrom4x4');
+        const viewRecordsBtn = document.getElementById('viewRecords');
+        const viewRecordsFrom3x3Btn = document.getElementById('viewRecordsFrom3x3');
+        const viewRecordsFrom4x4Btn = document.getElementById('viewRecordsFrom4x4');
+        const viewRecordsFromComplete3x3Btn = document.getElementById('viewRecordsFromComplete3x3');
+        const viewRecordsFromComplete4x4Btn = document.getElementById('viewRecordsFromComplete4x4');
+        const backFromRecordsBtn = document.getElementById('backFromRecords');
+        const recordsContainer = document.getElementById('recordsContainer');
 
-        function showPage2() {
-            document.getElementById('page1').style.display = 'none';
-            document.getElementById('page2').style.display = 'block';
-            initPage2();
-        }
-
-        function showPage3() {
-            document.getElementById('page1').style.display = 'none';
-            document.getElementById('page3').style.display = 'block';
-            initPage3();
-        }
-
-        // ---------------------- 玩法1：图字配对（双向秒消失）----------------------
-        let page2FirstCard = null;
-        let page2MatchedCount = 0;
-        const page2CardData = [
-            { key: 1, type: 'img', content: '🐱' },
-            { key: 1, type: 'txt', content: '猫' },
-            { key: 2, type: 'img', content: '🐶' },
-            { key: 2, type: 'txt', content: '狗' },
-            { key: 3, type: 'img', content: '🐦' },
-            { key: 3, type: 'txt', content: '鸟' },
-            { key: 4, type: 'img', content: '🌸' },
-            { key: 4, type: 'txt', content: '花' },
-            { key: 5, type: 'img', content: '📖' },
-            { key: 5, type: 'txt', content: '书' }
-        ];
-
-        function initPage2() {
-            const cardBox = document.getElementById('card-box2');
-            cardBox.innerHTML = '';
-            page2FirstCard = null;
-            page2MatchedCount = 0;
-
-            const shuffledCards = shuffleArray([...page2CardData]);
-            shuffledCards.forEach(cardInfo => {
-                const card = document.createElement('div');
-                card.className = `card ${cardInfo.type === 'img'? 'img-card' : 'txt-card'}`;
-                card.dataset.key = cardInfo.key;
-                card.dataset.type = cardInfo.type;
-                
-                // 图卡只显示Emoji，字卡只显示文字（保持原逻辑）
-                card.innerHTML = cardInfo.type === 'img'? 
-                    `<span class="card-img">${cardInfo.content}</span>` : 
-                    `<span class="card-txt">${cardInfo.content}</span>`;
-
-                card.onclick = function() {
-                    if (this.classList.contains('hidden') || this.classList.contains('flipped') || this === page2FirstCard) return;
-                    this.classList.add('flipped');
-
-                    if (!page2FirstCard) {
-                        page2FirstCard = this;
-                    } else {
-                        const firstKey = page2FirstCard.dataset.key;
-                        const firstType = page2FirstCard.dataset.type;
-                        const secondKey = this.dataset.key;
-                        const secondType = this.dataset.type;
-
-                        if (firstKey === secondKey && firstType!== secondType) {
-                            page2FirstCard.classList.add('hidden');
-                            this.classList.add('hidden');
-                            page2MatchedCount++;
-
-                            if (page2MatchedCount === 5) {
-                                document.getElementById('reward2').style.display = 'flex';
-                            }
-                        } else {
-                            setTimeout(() => {
-                                page2FirstCard.classList.remove('flipped');
-                                this.classList.remove('flipped');
-                            }, 500);
-                        }
-                        page2FirstCard = null;
-                    }
-                };
-                cardBox.appendChild(card);
-            });
-        }
-
-        function restartPage2() {
-            document.getElementById('reward2').style.display = 'none';
-            initPage2();
-        }
-
-        // ---------------------- 玩法2：反义词对对碰（大小图对比强化版）----------------------
-        let page3FirstCard = null;
-        let page3MatchedCount = 0;
-        // 核心优化：“大”=大皮球（🏀），“小”=小圆点（●），大小差异极致明显
-        const page3CardData = [
-            { key: 1, word: '多', img: '🍎🍎🍎' }, // 3个苹果=多
-            { key: 1, word: '少', img: '🍎' },     // 1个苹果=少
-            { key: 2, word: '大', img: '🏀' },      // 大皮球=大（视觉占比大）
-            { key: 2, word: '小', img: '●' },      // 小圆点=小（视觉占比极小）
-            { key: 3, word: '前', img: '🚗➡️' },   // 车朝前=前
-            { key: 3, word: '后', img: '⬅️🚗' },   // 车朝后=后
-            { key: 4, word: '左', img: '👈' },     // 左箭头=左
-            { key: 4, word: '右', img: '👉' },     // 右箭头=右
-            { key: 5, word: '上', img: '🔺' },     // 上三角=上
-            { key: 5, word: '下', img: '🔻' }      // 下三角=下
-        ];
-
-        function initPage3() {
-            const cardBox = document.getElementById('card-box3');
-            cardBox.innerHTML = '';
-            page3FirstCard = null;
-            page3MatchedCount = 0;
-
-            const shuffledCards = shuffleArray([...page3CardData]);
-            shuffledCards.forEach(cardInfo => {
-                const card = document.createElement('div');
-                card.className = 'card antonym-card'; // 统一浅黄底，区分玩法1
-                card.dataset.key = cardInfo.key;
-                
-                // 卡片结构：图片在上，文字在下（幼儿先看图再认词）
-                card.innerHTML = `
-                    <span class="card-img">${cardInfo.img}</span>
-                    <span class="card-txt">${cardInfo.word}</span>
-                `;
-
-                card.onclick = function() {
-                    if (this.classList.contains('hidden') || this.classList.contains('flipped') || this === page3FirstCard) return;
-                    this.classList.add('flipped');
-
-                    if (!page3FirstCard) {
-                        page3FirstCard = this;
-                    } else {
-                        if (page3FirstCard.dataset.key === this.dataset.key) {
-                            // 配对成功：秒消失
-                            page3FirstCard.classList.add('hidden');
-                            this.classList.add('hidden');
-                            page3MatchedCount++;
-
-                            if (page3MatchedCount === 5) {
-                                document.getElementById('reward3').style.display = 'flex';
-                            }
-                        } else {
-                            // 失败快速翻回
-                            setTimeout(() => {
-                                page3FirstCard.classList.remove('flipped');
-                                this.classList.remove('flipped');
-                            }, 500);
-                        }
-                        page3FirstCard = null;
-                    }
-                };
-                cardBox.appendChild(card);
-            });
-        }
-
-        function restartPage3() {
-            document.getElementById('reward3').style.display = 'none';
-            initPage3();
-        }
-
-        // ---------------------- 辅助函数：打乱数组 ----------------------
-        function shuffleArray(arr) {
-            return arr.sort(() => Math.random() - 0.5);
-        }
-
-        // 页面加载验证
-        window.onload = function() {
-            console.log('游戏加载完成，可正常操作');
+        // 游戏状态
+        let gameState = {
+            nickname: '',
+            timer3x3: 0,
+            timer4x4: 0,
+            timerInterval3x3: null,
+            timerInterval4x4: null,
+            board3x3: [],
+            board4x4: [],
+            emptyIndex3x3: 8,
+            emptyIndex4x4: 15,
+            moves3x3: 0,
+            moves4x4: 0
         };
+
+        // 游戏记录存储
+        let gameRecords = JSON.parse(localStorage.getItem('mathKlotskiRecords')) || [];
+
+        // 颜色数组
+        const colors = [
+            '#FF6B6B', '#4ECDC4', '#FFD166', '#06D6A0', 
+            '#118AB2', '#073B4C', '#7209B7', '#F15BB5', 
+            '#9B5DE5', '#00BBF9', '#00F5D4', '#FB5607',
+            '#FF006E', '#8338EC', '#3A86FF', '#FFBE0B'
+        ];
+
+        // 显示指定页面
+        function showPage(pageId) {
+            pages.forEach(page => {
+                page.classList.remove('active');
+            });
+            document.getElementById(pageId).classList.add('active');
+        }
+
+        // 初始化3x3游戏板
+        function init3x3Board() {
+            board3x3.innerHTML = '';
+            gameState.board3x3 = [1, 2, 3, 4, 5, 6, 7, 8, null];
+            gameState.moves3x3 = 0;
+            
+            // 随机打乱数组（确保游戏可解）
+            do {
+                for (let i = gameState.board3x3.length - 1; i > 0; i--) {
+                    const j = Math.floor(Math.random() * (i + 1));
+                    [gameState.board3x3[i], gameState.board3x3[j]] = [gameState.board3x3[j], gameState.board3x3[i]];
+                }
+            } while (!isSolvable(gameState.board3x3, 3));
+            
+            // 找到空白格的位置
+            gameState.emptyIndex3x3 = gameState.board3x3.indexOf(null);
+            
+            // 创建格子
+            gameState.board3x3.forEach((num, index) => {
+                const tile = document.createElement('div');
+                tile.className = num === null ? 'tile empty' : 'tile';
+                if (num !== null) {
+                    tile.textContent = num;
+                    tile.style.backgroundColor = colors[num - 1];
+                    tile.addEventListener('click', () => moveTile3x3(index));
+                }
+                board3x3.appendChild(tile);
+            });
+            
+            // 重置并启动计时器
+            clearInterval(gameState.timerInterval3x3);
+            gameState.timer3x3 = 0;
+            timer3x3.textContent = '时间: 0秒 | 步数: 0';
+            gameState.timerInterval3x3 = setInterval(() => {
+                gameState.timer3x3++;
+                updateTimer3x3();
+            }, 1000);
+            
+            updateDebugInfo3x3();
+        }
+
+        // 更新3x3计时器显示
+        function updateTimer3x3() {
+            timer3x3.textContent = `时间: ${gameState.timer3x3}秒 | 步数: ${gameState.moves3x3}`;
+        }
+
+        // 移动3x3格子
+        function moveTile3x3(index) {
+            console.log(`点击了位置 ${index}, 数字: ${gameState.board3x3[index]}`);
+            console.log(`空白格位置: ${gameState.emptyIndex3x3}`);
+            
+            // 检查是否与空白格相邻
+            if (isAdjacent3x3(index, gameState.emptyIndex3x3)) {
+                console.log("可以移动!");
+                
+                // 增加步数
+                gameState.moves3x3++;
+                
+                // 交换位置
+                [gameState.board3x3[index], gameState.board3x3[gameState.emptyIndex3x3]] = 
+                [gameState.board3x3[gameState.emptyIndex3x3], gameState.board3x3[index]];
+                
+                // 更新空白格位置
+                gameState.emptyIndex3x3 = index;
+                
+                // 更新UI
+                updateBoard3x3();
+                updateTimer3x3();
+                
+                // 检查是否完成
+                if (checkWin3x3()) {
+                    clearInterval(gameState.timerInterval3x3);
+                    
+                    // 保存记录
+                    saveRecord('3x3', gameState.timer3x3, gameState.moves3x3);
+                    
+                    result3x3.textContent = `${gameState.nickname}，恭喜你用了${gameState.timer3x3}秒和${gameState.moves3x3}步完成!`;
+                    showPage('page3');
+                }
+            } else {
+                console.log("不能移动，不相邻");
+            }
+            
+            updateDebugInfo3x3();
+        }
+
+        // 检查3x3中两个位置是否相邻
+        function isAdjacent3x3(index1, index2) {
+            const row1 = Math.floor(index1 / 3);
+            const col1 = index1 % 3;
+            const row2 = Math.floor(index2 / 3);
+            const col2 = index2 % 3;
+            
+            // 检查是否在同一行且列相邻，或同一列且行相邻
+            const isAdjacent = (row1 === row2 && Math.abs(col1 - col2) === 1) || 
+                              (col1 === col2 && Math.abs(row1 - row2) === 1);
+            
+            console.log(`位置 ${index1} (${row1},${col1}) 和位置 ${index2} (${row2},${col2}) 相邻: ${isAdjacent}`);
+            return isAdjacent;
+        }
+
+        // 更新3x3游戏板
+        function updateBoard3x3() {
+            const tiles = board3x3.querySelectorAll('.tile');
+            gameState.board3x3.forEach((num, index) => {
+                const tile = tiles[index];
+                tile.className = num === null ? 'tile empty' : 'tile';
+                if (num !== null) {
+                    tile.textContent = num;
+                    tile.style.backgroundColor = colors[num - 1];
+                    // 重新绑定事件
+                    tile.onclick = () => moveTile3x3(index);
+                } else {
+                    tile.textContent = '';
+                    tile.style.backgroundColor = 'transparent';
+                    tile.onclick = null;
+                }
+            });
+        }
+
+        // 更新3x3调试信息
+        function updateDebugInfo3x3() {
+            const movableTiles = getMovableTiles3x3();
+            debug3x3.textContent = `空白格位置: ${gameState.emptyIndex3x3} | 可移动的数字: ${movableTiles.length > 0 ? movableTiles.join(', ') : '无'}`;
+        }
+
+        // 获取3x3中可移动的数字
+        function getMovableTiles3x3() {
+            const movable = [];
+            const emptyIndex = gameState.emptyIndex3x3;
+            
+            // 检查上下左右四个方向
+            const directions = [
+                emptyIndex - 3, // 上
+                emptyIndex + 3, // 下
+                emptyIndex % 3 !== 0 ? emptyIndex - 1 : -1, // 左
+                emptyIndex % 3 !== 2 ? emptyIndex + 1 : -1  // 右
+            ];
+            
+            directions.forEach(dir => {
+                if (dir >= 0 && dir < 9 && gameState.board3x3[dir] !== null) {
+                    movable.push(gameState.board3x3[dir]);
+                }
+            });
+            
+            return movable;
+        }
+
+        // 检查3x3是否完成
+        function checkWin3x3() {
+            for (let i = 0; i < 8; i++) {
+                if (gameState.board3x3[i] !== i + 1) {
+                    return false;
+                }
+            }
+            return gameState.board3x3[8] === null;
+        }
+
+        // 初始化4x4游戏板
+        function init4x4Board() {
+            board4x4.innerHTML = '';
+            gameState.board4x4 = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, null];
+            gameState.moves4x4 = 0;
+            
+            // 随机打乱数组（确保游戏可解）
+            do {
+                for (let i = gameState.board4x4.length - 1; i > 0; i--) {
+                    const j = Math.floor(Math.random() * (i + 1));
+                    [gameState.board4x4[i], gameState.board4x4[j]] = [gameState.board4x4[j], gameState.board4x4[i]];
+                }
+            } while (!isSolvable(gameState.board4x4, 4));
+            
+            // 找到空白格的位置
+            gameState.emptyIndex4x4 = gameState.board4x4.indexOf(null);
+            
+            // 创建格子
+            gameState.board4x4.forEach((num, index) => {
+                const tile = document.createElement('div');
+                tile.className = num === null ? 'tile empty' : 'tile';
+                if (num !== null) {
+                    tile.textContent = num;
+                    tile.style.backgroundColor = colors[num - 1];
+                    tile.addEventListener('click', () => moveTile4x4(index));
+                }
+                board4x4.appendChild(tile);
+            });
+            
+            // 重置并启动计时器
+            clearInterval(gameState.timerInterval4x4);
+            gameState.timer4x4 = 0;
+            timer4x4.textContent = '时间: 0秒 | 步数: 0';
+            gameState.timerInterval4x4 = setInterval(() => {
+                gameState.timer4x4++;
+                updateTimer4x4();
+            }, 1000);
+            
+            updateDebugInfo4x4();
+        }
+
+        // 更新4x4计时器显示
+        function updateTimer4x4() {
+            timer4x4.textContent = `时间: ${gameState.timer4x4}秒 | 步数: ${gameState.moves4x4}`;
+        }
+
+        // 移动4x4格子
+        function moveTile4x4(index) {
+            // 检查是否与空白格相邻
+            if (isAdjacent4x4(index, gameState.emptyIndex4x4)) {
+                // 增加步数
+                gameState.moves4x4++;
+                
+                // 交换位置
+                [gameState.board4x4[index], gameState.board4x4[gameState.emptyIndex4x4]] = 
+                [gameState.board4x4[gameState.emptyIndex4x4], gameState.board4x4[index]];
+                
+                // 更新空白格位置
+                gameState.emptyIndex4x4 = index;
+                
+                // 更新UI
+                updateBoard4x4();
+                updateTimer4x4();
+                
+                // 检查是否完成
+                if (checkWin4x4()) {
+                    clearInterval(gameState.timerInterval4x4);
+                    
+                    // 保存记录
+                    saveRecord('4x4', gameState.timer4x4, gameState.moves4x4);
+                    
+                    result4x4.textContent = `${gameState.nickname}，恭喜你用了${gameState.timer4x4}秒和${gameState.moves4x4}步完成!`;
+                    showPage('page5');
+                }
+            }
+            
+            updateDebugInfo4x4();
+        }
+
+        // 检查4x4中两个位置是否相邻
+        function isAdjacent4x4(index1, index2) {
+            const row1 = Math.floor(index1 / 4);
+            const col1 = index1 % 4;
+            const row2 = Math.floor(index2 / 4);
+            const col2 = index2 % 4;
+            
+            // 检查是否在同一行且列相邻，或同一列且行相邻
+            return (row1 === row2 && Math.abs(col1 - col2) === 1) || 
+                   (col1 === col2 && Math.abs(row1 - row2) === 1);
+        }
+
+        // 更新4x4游戏板
+        function updateBoard4x4() {
+            const tiles = board4x4.querySelectorAll('.tile');
+            gameState.board4x4.forEach((num, index) => {
+                const tile = tiles[index];
+                tile.className = num === null ? 'tile empty' : 'tile';
+                if (num !== null) {
+                    tile.textContent = num;
+                    tile.style.backgroundColor = colors[num - 1];
+                    // 重新绑定事件
+                    tile.onclick = () => moveTile4x4(index);
+                } else {
+                    tile.textContent = '';
+                    tile.style.backgroundColor = 'transparent';
+                    tile.onclick = null;
+                }
+            });
+        }
+
+        // 更新4x4调试信息
+        function updateDebugInfo4x4() {
+            const movableTiles = getMovableTiles4x4();
+            debug4x4.textContent = `空白格位置: ${gameState.emptyIndex4x4} | 可移动的数字: ${movableTiles.length > 0 ? movableTiles.join(', ') : '无'}`;
+        }
+
+        // 获取4x4中可移动的数字
+        function getMovableTiles4x4() {
+            const movable = [];
+            const emptyIndex = gameState.emptyIndex4x4;
+            
+            // 检查上下左右四个方向
+            const directions = [
+                emptyIndex - 4, // 上
+                emptyIndex + 4, // 下
+                emptyIndex % 4 !== 0 ? emptyIndex - 1 : -1, // 左
+                emptyIndex % 4 !== 3 ? emptyIndex + 1 : -1  // 右
+            ];
+            
+            directions.forEach(dir => {
+                if (dir >= 0 && dir < 16 && gameState.board4x4[dir] !== null) {
+                    movable.push(gameState.board4x4[dir]);
+                }
+            });
+            
+            return movable;
+        }
+
+        // 检查4x4是否完成
+        function checkWin4x4() {
+            for (let i = 0; i < 15; i++) {
+                if (gameState.board4x4[i] !== i + 1) {
+                    return false;
+                }
+            }
+            return gameState.board4x4[15] === null;
+        }
+
+        // 检查拼图是否可解
+        function isSolvable(board, size) {
+            let inversions = 0;
+            const flatBoard = board.filter(num => num !== null);
+            
+            for (let i = 0; i < flatBoard.length - 1; i++) {
+                for (let j = i + 1; j < flatBoard.length; j++) {
+                    if (flatBoard[i] > flatBoard[j]) {
+                        inversions++;
+                    }
+                }
+            }
+            
+            if (size % 2 === 1) {
+                return inversions % 2 === 0;
+            } else {
+                const emptyRow = Math.floor(board.indexOf(null) / size);
+                return (inversions + emptyRow) % 2 === 1;
+            }
+        }
+
+        // 保存游戏记录
+        function saveRecord(gameType, time, moves) {
+            const record = {
+                nickname: gameState.nickname,
+                gameType: gameType,
+                time: time,
+                moves: moves,
+                date: new Date().toLocaleString()
+            };
+            
+            gameRecords.push(record);
+            localStorage.setItem('mathKlotskiRecords', JSON.stringify(gameRecords));
+        }
+
+        // 显示游戏记录
+        function showRecords() {
+            recordsContainer.innerHTML = '';
+            
+            if (gameRecords.length === 0) {
+                recordsContainer.innerHTML = '<div class="no-records">暂无游戏记录</div>';
+                return;
+            }
+            
+            // 创建表格
+            const table = document.createElement('table');
+            table.className = 'records-table';
+            
+            // 表头
+            const thead = document.createElement('thead');
+            thead.innerHTML = `
+                <tr>
+                    <th>昵称</th>
+                    <th>游戏类型</th>
+                    <th>用时(秒)</th>
+                    <th>步数</th>
+                    <th>日期</th>
+                </tr>
+            `;
+            table.appendChild(thead);
+            
+            // 表体
+            const tbody = document.createElement('tbody');
+            
+            // 按时间排序（最新的在前面）
+            const sortedRecords = [...gameRecords].sort((a, b) => new Date(b.date) - new Date(a.date));
+            
+            sortedRecords.forEach(record => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${record.nickname}</td>
+                    <td>${record.gameType}</td>
+                    <td>${record.time}</td>
+                    <td>${record.moves}</td>
+                    <td>${record.date}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+            
+            table.appendChild(tbody);
+            recordsContainer.appendChild(table);
+        }
+
+        // 事件监听
+        startGameBtn.addEventListener('click', () => {
+            const nickname = nicknameInput.value.trim();
+            if (nickname) {
+                gameState.nickname = nickname;
+                init3x3Board();
+                showPage('page2');
+            } else {
+                alert('请输入昵称!');
+            }
+        });
+
+        challengeAdvancedBtn.addEventListener('click', () => {
+            init4x4Board();
+            showPage('page4');
+        });
+
+        backToHome1Btn.addEventListener('click', () => {
+            nicknameInput.value = '';
+            showPage('page1');
+        });
+
+        backToHome2Btn.addEventListener('click', () => {
+            nicknameInput.value = '';
+            showPage('page1');
+        });
+
+        backToHomeFrom3x3Btn.addEventListener('click', () => {
+            clearInterval(gameState.timerInterval3x3);
+            nicknameInput.value = '';
+            showPage('page1');
+        });
+
+        backToHomeFrom4x4Btn.addEventListener('click', () => {
+            clearInterval(gameState.timerInterval4x4);
+            nicknameInput.value = '';
+            showPage('page1');
+        });
+
+        // 查看记录按钮
+        viewRecordsBtn.addEventListener('click', () => {
+            showRecords();
+            showPage('page6');
+        });
+
+        viewRecordsFrom3x3Btn.addEventListener('click', () => {
+            showRecords();
+            showPage('page6');
+        });
+
+        viewRecordsFrom4x4Btn.addEventListener('click', () => {
+            showRecords();
+            showPage('page6');
+        });
+
+        viewRecordsFromComplete3x3Btn.addEventListener('click', () => {
+            showRecords();
+            showPage('page6');
+        });
+
+        viewRecordsFromComplete4x4Btn.addEventListener('click', () => {
+            showRecords();
+            showPage('page6');
+        });
+
+        backFromRecordsBtn.addEventListener('click', () => {
+            showPage('page1');
+        });
     </script>
 </body>
 </html>
